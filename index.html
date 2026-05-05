@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>It's All in the Mind!</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:linear-gradient(135deg,#fffdf7,#f8f3e7);
+}
+
+header{
+    text-align:center;
+    padding:25px;
+    font-size:32px;
+    font-weight:bold;
+    color:#b8860b;
+}
+
+.layout{
+    display:grid;
+    grid-template-columns:2fr 4fr;
+    gap:20px;
+    width:95%;
+    margin:auto;
+}
+
+.panel, .card{
+    background:white;
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 10px 20px rgba(0,0,0,.1);
+}
+
+.title{
+    font-size:22px;
+    margin-bottom:10px;
+    color:#b8860b;
+}
+
+/* TODO */
+li{
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
+    margin:5px 0;
+    background:#fafafa;
+    border-radius:10px;
+}
+
+.done{
+    text-decoration:line-through;
+    color:gray;
+}
+
+textarea{
+    width:100%;
+    height:150px;
+}
+
+/* right */
+.right{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+</style>
+</head>
+
+<body>
+
+<header>✨ It's All in the Mind!</header>
+
+<div class="layout">
+
+<div>
+    <div class="panel">
+        <div class="title">✔ DO IT LIST</div>
+        <input id="todoInput">
+        <button onclick="addTodo()">추가</button>
+        <ul id="todoList"></ul>
+    </div>
+
+    <div class="panel">
+        <div class="title">📝 Memo</div>
+        <textarea id="memo"></textarea>
+    </div>
+</div>
+
+<div class="right">
+
+<div class="card">
+    <div class="title">🌤 Weather</div>
+    <div id="weather"></div>
+</div>
+
+<div class="card">
+    <div class="title">📈 Stocks</div>
+    <div id="stocks"></div>
+</div>
+
+<div class="card">
+    <div class="title">📰 News</div>
+    <div id="news"></div>
+</div>
+
+<div class="card">
+    <div class="title">🍱 Meal</div>
+    <div id="meal"></div>
+</div>
+
+</div>
+
+</div>
+
+<script src="/.netlify/functions/functions"></script>
+
+<script>
+// TODO
+let todos = JSON.parse(localStorage.getItem("todos"))||[];
+
+function save(){localStorage.setItem("todos",JSON.stringify(todos));}
+
+function render(){
+    let list=document.getElementById("todoList");
+    list.innerHTML="";
+    todos.forEach((t,i)=>{
+        let li=document.createElement("li");
+        li.innerHTML=`
+        <span class="${t.done?'done':''}">${t.text}</span>
+        <div>
+            <button onclick="toggle(${i})">✔</button>
+            <button onclick="del(${i})">X</button>
+        </div>`;
+        list.appendChild(li);
+    });
+}
+
+function addTodo(){
+    let v=document.getElementById("todoInput").value;
+    if(!v) return;
+    todos.push({text:v,done:false});
+    save(); render();
+}
+
+function toggle(i){todos[i].done=!todos[i].done; save(); render();}
+function del(i){todos.splice(i,1); save(); render();}
+
+render();
+
+// MEMO
+let memo=document.getElementById("memo");
+memo.value=localStorage.getItem("memo")||"";
+memo.oninput=()=>localStorage.setItem("memo",memo.value);
+
+// LOAD API
+async function load(){
+    let data=await fetch("/.netlify/functions/functions").then(r=>r.json());
+
+    document.getElementById("weather").innerText=data.weather;
+    document.getElementById("stocks").innerText=data.stocks;
+    document.getElementById("news").innerText=data.news.join("\n");
+    document.getElementById("meal").innerText=data.meal;
+}
+load();
+</script>
+
+</body>
+</html>
